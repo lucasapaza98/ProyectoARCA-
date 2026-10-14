@@ -1,29 +1,31 @@
-program parseoContrib;
+
+Program parseoContrib;
 uses
     crt;
-type
-    t_RegCont = record
-                cuiLT  : string[13];
-                apeNom,
-                mail,
-                direc  : string[30];
-                celu   : string[15];
-                claveF : string[10];
-                tipoCon: char;
-                end;
-    t_ArCont = file of t_RegCont;
 
-var
+Type 
+    t_RegCont = Record
+                  cuiLT  : string[13];
+                  apeNom,
+                  mail,
+                  direc  : string[30];
+                  celu   : string[15];
+                  claveF : string[10];
+                  tipoCon: char;
+                End;
+    t_ArCont = file Of t_RegCont;
+
+Var 
    regCon  : t_RegCont;
    archivo : text;
    arCont  : t_ArCont;
    linea   : string;
-   cLin , c :integer;
+   cLin , c : integer;
 
    //Procedimientos
 
-//Cuerpo del programa
-BEGIN
+  //Cuerpo del programa
+Begin
      assign(archivo , 'contribuyentes.txt');
      reset(archivo);
      assign(arCont, 'contribuyentes.dat');
@@ -31,59 +33,59 @@ BEGIN
      writeln('Detalle de contribuyente');
      cLin := 0;
      // Ciclo de lectura del archivo
-     while not eof(archivo) do
-     begin
+     while not eof(archivo) Do
+     Begin
           readln(archivo , linea);
           inc(cLin);
           writeln('Nro ' , cLin, ':');
           c := 1;
           //Recuperacion del CUIL CUIT
           regCon.cuiLT := '';
-          while linea[c] <> ';' do
-          begin
+          while linea[c] <> ';' Do
+          Begin
                regCon.cuiLT := regCon.cuiLT + linea[c];
                inc(c);
-          end;
+          End;
           inc(c);
           //Recuperacion del nombre
           regCon.apeNom := '';
-          while linea[c] <> ';' do
-          begin
+          while linea[c] <> ';' Do
+          Begin
                regCon.apeNom := regCon.apeNom + linea[c];
                inc(c);
-          end;
+          End;
           inc(c);
           // Recuperacion del mail
           regCon.mail := '';
-          while linea[c] <> ';' do
-          begin
+          while linea[c] <> ';' Do
+          Begin
                regCon.mail := regCon.mail + linea[c];
                inc(c);
-          end;
+          End;
           inc(c);
           // Recuperacion del celular
           regCon.celu := '';
-          while linea[c] <> ';' do
-          begin
+          while linea[c] <> ';' Do
+          Begin
                regCon.celu := regCon.celu + linea[c];
                inc(c);
-          end;
+          End;
           inc(c);
           // Recuperacion de clave fiscal
           regCon.claveF := '';
-          while linea[c]<>';' do
-          begin
+          while linea[c]<>';' Do
+          Begin
                regCon.claveF := regCon.claveF + linea[c];
                inc(c);
-          end;
+          End;
           inc(c);
-          // Recuperacion de dirección
+          // Recuperacion de direcciï¿½n
           regCon.direc := '';
-          while linea[c] <> ';' do
-          begin
+          while linea[c] <> ';' Do
+          Begin
                regCon.direc := regCon.direc + linea[c];
                inc(c);
-          end;
+          End;
           inc(c);
           regCon.tipoCon := linea[c];
           // Impresion de datos
@@ -92,13 +94,12 @@ BEGIN
           writeln('       Mail:            ',regCon.mail);
           writeln('       Celular:         ',regCon.celu);
           writeln('       Clave Fiscal:    ',regCon.claveF);
-          writeln('       Dirección:       ',regCon.direc);
+          writeln('       Direcciï¿½n:       ',regCon.direc);
           writeln('       Tipo Contrib:    ',regCon.tipoCon);
           writeln('----------------------------------');
           write(arCont, regCon);
-     end;
+     End;
      close(archivo);
      close(arCont);
      readkey;
-END.
-
+End.
