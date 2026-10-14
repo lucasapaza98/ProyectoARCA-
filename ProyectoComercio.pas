@@ -192,6 +192,7 @@ BEGIN
         rewrite(arch);
     close(arch);
     repeat
+        clrscr;
         writeln(' Menu Principal ');
         writeln(' A - Alta de Contribuyente ');
         writeln(' B - Baja de Registro ');
@@ -199,13 +200,14 @@ BEGIN
         writeln(' M - Modificacion de Contribuyente ');
         writeln(' T - Terminar ');
         readln(opc);
-        case opc of
-            'A', 'a': altaDatos();
-            'B', 'b': bajaDatos();
-            'C', 'c': buscarDatos();
-            'M', 'm': modificarDatos();
-            'T', 't': writeln('Saliendo del programa');
-            else      writeln('Opcion Invalida ');
+        case upcase(opc) of
+            'A': altaDatos();
+            'B': bajaDatos();
+            'C': buscarDatos();
+            'M': modificarDatos();
+            'T': writeln('Saliendo del programa');
+            else
+             writeln('Opcion Invalida ');
         end;
     until (opc = 'T') or (opc = 't');
     readkey;
