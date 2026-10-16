@@ -3,13 +3,12 @@ uses
     crt;
 Type
       tCon = Record
-               nom : string[30];
-               ape : string[30];
                cuil : string[13];
-               cel : string[15];
-               dir : string[30];
+               nom : string[30]; // Apellido y nombre
                mail : string[30];
+               cel : string[15];
                clfis : string[10];
+               dir : string[30];
                tipocont : char;
                activo : boolean;
            End;
@@ -17,7 +16,7 @@ Type
 Var
     con : tCon;
     archBin : tArc;
-    // archText: text;
+    //archText: text;
     opc : char;
 Procedure altaDatos();
 
@@ -33,16 +32,14 @@ Procedure altaDatos();
                 con.cuil := numcuil;
                 write('Nombre: ');
                 readln(con.nom);
-                write('Apellido: ');
-                readln(con.ape);
-                write('Celular: ');
-                readln(con.cel);
-                write('Direccion: ');
-                readln(con.dir);
                 write('Mail: ');
                 readln(con.mail);
+                write('Celular: ');
+                readln(con.cel);
                 write('Clave Fiscal: ');
                 readln(con.clfis);
+                write('Direccion: ');
+                readln(con.dir);
                 write('Tipo de Contribuyente (R/M): ');
                 readln(con.tipocont);
                 con.activo := true;
@@ -65,12 +62,12 @@ procedure bajaDatos();
         seek(archBin, 0);
         while not eof(archBin) and not encontrado do begin
             read(archBin, con);
-            writeln(con.cuil);
-            readkey;
+            //writeln(con.cuil);
+            //readkey;
             if (con.cuil = numcuil) and (con.activo = true) then begin
                 con.activo := false;
                 seek(archBin, filepos(archBin) - 1); // Retrocedemos una posición
-               // write(archBin, con);
+                write(archBin, con);
                 encontrado := true;
                 writeln('El Contribuyente ha sido eliminado correctamente.');
             end;
@@ -95,23 +92,32 @@ begin
     while not eof(archBin) and not encontrado do begin
         pos := filepos(archBin); // Guardamos la posición del registro en el archivo
         read(archBin, con);
-       // if (con.cuil = numcuil) and con.activo then begin
+        if (con.cuil = numcuil) and con.activo then begin
             encontrado := true;
             writeln('Direccion de Registro Posicion: ', pos);
-            writeln('CUIT/CUIL: ', con.cuil);
-            writeln('Nombre: ', con.nom);
-            writeln('Apellido: ', con.ape);
-            writeln('Celular: ', con.cel);
-            writeln('Direccion: ', con.dir);
-            writeln('Mail: ', con.mail);
-            writeln('Clave Fiscal: ', con.clfis);
-            writeln('Tipo de Contribuyente: ', con.tipocont);
-        //end;
+            writeln('-------------------------------------');
+            writeln('CUIT/CUIL             |', con.cuil);
+            writeln('Nombre                |', con.nom);
+            writeln('Mail                  |', con.mail);
+            writeln('Celular               |', con.cel);
+            writeln('Clave Fiscal          |', con.clfis);
+            writeln('Direccion             |', con.dir);
+            writeln('Tipo de Contribuyente:| ', con.tipocont);
+            writeln('-------------------------------------');
+        end;
     end;
     close(archBin);
     
-    if not encontrado then
+    if not encontrado then begin
+        textcolor(red);
         writeln('El contribuyente no existe o esta inactivo.');
+        textcolor(white);
+        end;
+    writeln;
+    textcolor(yellow);
+    writeln('Presiona un boton para salir');
+    textcolor(white);
+    readkey;
 end;
 
 procedure modificarDatos();
@@ -135,12 +141,11 @@ begin
                 writeln('Direccion de Registro Posicion: ', pos);
                 writeln('--- Menu de Modificacion ---');
                 writeln('1. Nombre: ', con.nom);
-                writeln('2. Apellido: ', con.ape);
+                writeln('2. Mail: ', con.mail);
                 writeln('3. Celular: ', con.cel);
-                writeln('4. Direccion: ', con.dir);
-                writeln('5. Mail: ', con.mail);
-                writeln('6. Clave Fiscal: ', con.clfis);
-                writeln('7. Tipo de Contribuyente (R/M): ', con.tipocont);
+                writeln('4. Clave Fiscal: ', con.clfis);
+                writeln('5. Direccion: ', con.dir);
+                writeln('6. Tipo de Contribuyente (R/M): ', con.tipocont);
                 writeln('0. Guardar y Salir');
                 write('Elija el campo a cambiar: ');
                 readln(opcMod);
@@ -150,27 +155,26 @@ begin
                             write('Nuevo Nombre: '); 
                             readln(con.nom);
                          end;
-                    '2': begin 
-                            write('Nuevo Apellido: '); 
-                            readln(con.ape);
-                         end;
-                    '3': begin 
-                            write('Nuevo Celular: '); 
-                            readln(con.cel);
-                         end;
-                    '4': begin 
-                            write('Nueva Direccion: '); 
-                            readln(con.dir);
-                         end;
-                    '5': begin 
+
+                    '2': begin
                             write('Nuevo Mail: '); 
                             readln(con.mail);
                          end;
-                    '6': begin 
+                    '3': begin
+                            write('Nuevo Celular: '); 
+                            readln(con.cel);
+                         end;
+                    '4': begin
                             write('Nueva Clave Fiscal: ');
                             readln(con.clfis);
                          end;
-                    '7': begin 
+                    '5': begin
+                            write('Nueva Direccion: '); 
+                            readln(con.dir);
+                         end;
+
+
+                    '6': begin
                             write('Nuevo Tipo de Contribuyente (R/M): ');
                             readln(con.tipocont);
                          end;
@@ -188,15 +192,15 @@ begin
 end;
 
 
-{Procedure importarDesdeTxt();   Procedimiento de Parseo y Transformación de Datos de Texto a Binario
+{Procedure importarDesdeTxt();
 
 Var linea : string;
     c, cLin : integer;
 Begin
-    assign(archText, 'contribuyentes.txt');
+    assign(archText, 'contribuyentes2.txt');
     reset(archText);
-    assign(archBin, 'contribuyentes.dat');
-    reset(archBin);
+    assign(archBin, 'contribuyentes2.dat');
+    rewrite(archBin);// Abrir de la escritura
     cLin := 0;
 
     while not eof(archText) Do
@@ -206,6 +210,13 @@ Begin
         c := 1;
 
         // Parseo campo por campo
+        con.cuil := '';
+        while linea[c] <> ';'do
+        begin
+             con.cuil := con.cuil + linea[c];
+             inc(c);
+        end;
+        inc(c);
 
         con.nom := '';
         while linea[c] <> ';' Do
@@ -215,38 +226,6 @@ Begin
         End;
         inc(c);
 
-        con.ape := '';
-        while linea[c] <> ';' Do
-        Begin
-            con.ape := con.ape + linea[c];
-            inc(c);
-        End;
-        inc(c);
-
-        con.cuil := '';
-        while linea[c] <> ';' Do
-        Begin
-            con.cuil := con.cuil + linea[c];
-            inc(c);
-        End;
-        inc(c);
-
-
-        con.cel := '';
-        while linea[c] <> ';' Do
-        Begin
-            con.cel := con.cel + linea[c];
-            inc(c);
-        End;
-        inc(c);
-
-        con.dir := '';
-        while linea[c] <> ';' Do
-        Begin
-            con.dir := con.dir + linea[c];
-            inc(c);
-        End;
-        inc(c);
 
         con.mail := '';
         while linea[c] <> ';' Do
@@ -256,10 +235,26 @@ Begin
         End;
         inc(c);
 
+        con.cel := '';
+        while linea[c] <> ';' Do
+        Begin
+            con.cel := con.cel + linea[c];
+            inc(c);
+        End;
+        inc(c);
+
         con.clfis := '';
         while linea[c] <> ';' Do
         Begin
             con.clfis := con.clfis + linea[c];
+            inc(c);
+        End;
+        inc(c);
+
+        con.dir := '';
+        while linea[c] <> ';' Do
+        Begin
+            con.dir := con.dir + linea[c];
             inc(c);
         End;
         inc(c);
@@ -278,7 +273,7 @@ Begin
 End;
 }
 BEGIN
-     assign (archBin, 'contribuyentes.dat');
+     assign (archBin, 'contribuyentes2.dat');
     {$I-}
         reset(archBin);
     {$I+}
@@ -286,11 +281,13 @@ BEGIN
         rewrite(archBin);
     close(archBin);
     repeat
+        clrscr;
         writeln(' Menu Principal ');
         writeln(' A - Alta de Contribuyente ');
         writeln(' B - Baja de Registro ');
         writeln(' C - Busqueda de Registro ');
         writeln(' M - Modificacion de Contribuyente ');
+       // writeln(' I - Importar');
         writeln(' T - Terminar ');
         readln(opc);
         case opc of
@@ -298,6 +295,7 @@ BEGIN
             'B', 'b': bajaDatos();
             'C', 'c': buscarDatos();
             'M', 'm': modificarDatos();
+         //   'I', 'i': importarDesdeTxt();
             'T', 't': writeln('Saliendo del programa');
             else      writeln('Opcion Invalida ');
         end;
