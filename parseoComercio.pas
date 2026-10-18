@@ -13,22 +13,72 @@ Type
                activo : boolean;
            End;
     tArc = file Of tCon;
-Var
-    con : tCon;
-    archBin : tArc;
-    //archText: text;
-    opc : char;
-Procedure altaDatos();
 
-    Var 
+    // El reintegro
+     Treintegro = record
+      cuilcontribuyente: string[13];
+      nroresolucion: integer;
+      montoreintegro: real;
+      estado: string[15];
+      activo: boolean;
+   end;
+   Tarchrei = file of Treintegro;
+
+   // Las compras
+   tCompras = record
+         idCom: integer;
+         cuilCli: string[13]; // FK - contribuyente
+         fecha: string[10];
+         des: string[50];
+         montoTotal: real;
+         medioPago: string[15]; // Efectivo, debito, credito, etc.
+         activo: boolean;
+       end;
+    TarchCom = file of tCompras;
+
+var
+    con : tCon;   // Archivos de controbuyentes
+    archReintegro:Tarchrei; // Archivos de reintegros
+    archBin : tArc; //Archivos de controbuyentes
+    rei : Treintegro; // Registro de reintegro
+    archCom: TarchCom; // Archivos de compras
+    com: tCompras;// Registro de compras
+
+    //archText: text;
+    opc : char; // Menu
+
+function existeContribuyente(cuilbuscado: string[13]): boolean;
+var
+  tmp:tCon; // Archivo de controbuyente
+
+  begin
+       existeContribuyente := false;
+       reset(archBin);//Abrir el contribuyente
+
+       while not eof(archBin) do begin
+           read(archBin, tmp);
+           if(tmp.cuil = cuilbuscado) AND tmp.activo then begin
+               existeContribuyente:= true;
+               break;
+           end;
+         end;
+
+         close(archBin);
+      end;
+
+
+
+procedure altaDatos();
+
+    var
         numcuil : string[13];
-        Begin
+        begin
             reset(archBin);
             seek(archBin, filesize(archBin));
             write('CUIT/CUIL: ');
             readln(numcuil);
             while numcuil <> '*' Do
-          Begin
+          begin
                 con.cuil := numcuil;
                 write('Nombre: ');
                 readln(con.nom);
@@ -46,9 +96,9 @@ Procedure altaDatos();
                 write(archBin, con);
                 write('CUIT/CUIL: ');
                 readln(numcuil);
-            End;
+            end;
             close(archBin);
-        End;
+        end;
 
 procedure bajaDatos();
     var
@@ -138,6 +188,9 @@ begin
         if (con.cuil = numcuil) and con.activo then begin
             encontrado := true;
             repeat
+            clrscr;
+
+            textcolor(yellow);
                 writeln('Direccion de Registro Posicion: ', pos);
                 writeln('--- Menu de Modificacion ---');
                 writeln('1. Nombre: ', con.nom);
@@ -149,48 +202,167 @@ begin
                 writeln('0. Guardar y Salir');
                 write('Elija el campo a cambiar: ');
                 readln(opcMod);
+                textcolor(white);
                 
                 case opcMod of
                     '1': begin 
-                            write('Nuevo Nombre: '); 
+                            write('Nuevo Nombre: (',con.nom,')');
                             readln(con.nom);
                          end;
 
                     '2': begin
-                            write('Nuevo Mail: '); 
+                            write('Nuevo Mail: (',con.mail,')');
                             readln(con.mail);
                          end;
                     '3': begin
-                            write('Nuevo Celular: '); 
+                            write('Nuevo Celular: (',con.cel,')');
                             readln(con.cel);
                          end;
                     '4': begin
-                            write('Nueva Clave Fiscal: ');
+                            write('Nueva Clave Fiscal: (',con.clfis,')');
                             readln(con.clfis);
                          end;
                     '5': begin
-                            write('Nueva Direccion: '); 
+                            write('Nueva Direccion: (',con.dir,')');
                             readln(con.dir);
                          end;
 
 
                     '6': begin
-                            write('Nuevo Tipo de Contribuyente (R/M): ');
+                            write('Nuevo Tipo de Contribuyente (R/M): (',con.tipocont,')');
                             readln(con.tipocont);
                          end;
                 end;
             until opcMod = '0';
             seek(archBin, pos);
             write(archBin, con);
+            textcolor(green);
             writeln('Registro actualizado exitosamente.');
+            textcolor(white);
+            readkey;
         end;
     end;
     close(archBin);
     
-    if not encontrado then
+    if not encontrado then begin
+        textcolor(red);
         writeln('El contribuyente no existe o esta inactivo.');
+       textcolor(white);
+       end;
 end;
 
+procedure gestionarReintegro();
+var
+    cuilbuscado : string[13];
+    encontrado : boolean;
+    montoBase :real;
+    montocalculado : real;
+begin
+    assign(archBin, 'contribuyentes2.dat');
+    assign(archReintegro, 'reintegros.dat');
+
+    {$I-}
+    reset(archReintegro);
+    {$I+}
+    if IOResult <> 0 then
+        rewrite(archReintegro);
+
+    write('Ingrese CUIL/CUIT del contribuyente: ');
+    readln(cuilbuscado);
+    encontrado := false;
+
+    reset(archBin);
+    while not eof(archBin) and not encontrado do begin
+        read(archBin, con);
+        if (con.cuil = cuilbuscado) and con.activo then
+            encontrado := true;
+    end;
+    close(archBin);
+
+    if encontrado then begin
+        write('Ingrese el monto base: ');
+        readln(montoBase);
+
+       if con.tipocont = 'R' then
+        montocalculado := montoBase * 0.21
+        else
+           montocalculado := 0;
+
+        writeln('Monto de reintegro calculado: $', montocalculado:0:2);
+
+        // Guardar en archivo de reintegros
+        seek(archReintegro, filesize(archReintegro));  // mueve el puntero al final del archivo
+        rei.cuilcontribuyente := cuilbuscado; // Guarda el cuil
+        rei.nroresolucion := filesize(archReintegro) + 1;   //asigna el numero de resolucion automatico
+        rei.montoreintegro := montocalculado; //guarda el monto calculado
+        rei.estado := 'Pendiente';
+        rei.activo := true;
+        write(archReintegro, rei); // Escribe el registro en el archivo
+
+        writeln('Reintegro registrado en archivo.');
+    end
+    else begin
+        writeln('Contribuyente no encontrado o inactivo.');
+    end;
+
+    close(archReintegro);
+
+    writeln('Presione una tecla para continuar...');
+    readkey;
+end;
+
+
+
+procedure altaCompras();
+ var
+    nCom: integer;
+    cuilbuscado:string[13];
+ begin
+  assign(archCom, 'comprasclientes.dat');
+   {$I-}
+    reset(archCom);
+    {$I+}
+    if IOResult <> 0 then
+        rewrite(archCom);
+
+    seek(archCom, filesize(archCom));
+    nCom := filesize(archCom) + 1;
+
+    write('CUIL/CUIT del cliente: ');
+    readln(cuilbuscado);
+
+   if existeContribuyente(cuilbuscado) then begin
+      com.idCom := nCom;
+      com.cuilCli := cuilbuscado;
+
+
+    write('Fecha de la compra: ');
+    readln(com.fecha);
+    write('Descripcion :');
+    readln(com.des);
+    write('Monto total: ');
+    readln(com.montoTotal);
+    write('Medio de pago: ');
+    readln(com.medioPago);
+
+    com.activo:= true;
+    end
+    else begin
+    writeln('CUIL/CUIT NO existe');
+    end;
+
+    close(archCom);
+
+    textcolor(green);
+    writeln('Compra registrada correctamente');
+    textcolor(white);
+
+    readkey;
+
+
+
+
+ end;
 
 {Procedure importarDesdeTxt();
 
@@ -287,6 +459,8 @@ BEGIN
         writeln(' B - Baja de Registro ');
         writeln(' C - Busqueda de Registro ');
         writeln(' M - Modificacion de Contribuyente ');
+        writeln(' R - Reintegro');
+        writeln(' P - Alta Compras ');
        // writeln(' I - Importar');
         writeln(' T - Terminar ');
         readln(opc);
@@ -295,6 +469,8 @@ BEGIN
             'B', 'b': bajaDatos();
             'C', 'c': buscarDatos();
             'M', 'm': modificarDatos();
+            'R', 'r': gestionarReintegro();
+            'P', 'p': altaCompras();
          //   'I', 'i': importarDesdeTxt();
             'T', 't': writeln('Saliendo del programa');
             else      writeln('Opcion Invalida ');
