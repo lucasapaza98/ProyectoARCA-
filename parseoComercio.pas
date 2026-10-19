@@ -1,7 +1,7 @@
 Program parseoArca;
 uses
     crt;
-Type
+type
       tCon = Record
                cuil : string[13];
                nom : string[30]; // Apellido y nombre
@@ -37,9 +37,9 @@ Type
     TarchCom = file of tCompras;
 
 var
-    con : tCon;   // Archivos de controbuyentes
+    con : tCon;   // Archivos de contribuyentes
     archReintegro:Tarchrei; // Archivos de reintegros
-    archBin : tArc; //Archivos de controbuyentes
+    archBin : tArc; //Archivos de contribuyentes
     rei : Treintegro; // Registro de reintegro
     archCom: TarchCom; // Archivos de compras
     com: tCompras;// Registro de compras
@@ -65,8 +65,6 @@ var
 
          close(archBin);
       end;
-
-
 
 procedure altaDatos();
 
@@ -116,7 +114,7 @@ procedure bajaDatos();
             //readkey;
             if (con.cuil = numcuil) and (con.activo = true) then begin
                 con.activo := false;
-                seek(archBin, filepos(archBin) - 1); // Retrocedemos una posición
+                seek(archBin, filepos(archBin) - 1); // Retrocedemos una posici?n
                 write(archBin, con);
                 encontrado := true;
                 writeln('El Contribuyente ha sido eliminado correctamente.');
@@ -140,7 +138,7 @@ begin
     encontrado := false;
     
     while not eof(archBin) and not encontrado do begin
-        pos := filepos(archBin); // Guardamos la posición del registro en el archivo
+        pos := filepos(archBin); // Guardamos la posici?n del registro en el archivo
         read(archBin, con);
         if (con.cuil = numcuil) and con.activo then begin
             encontrado := true;
@@ -226,8 +224,6 @@ begin
                             write('Nueva Direccion: (',con.dir,')');
                             readln(con.dir);
                          end;
-
-
                     '6': begin
                             write('Nuevo Tipo de Contribuyente (R/M): (',con.tipocont,')');
                             readln(con.tipocont);
@@ -311,8 +307,6 @@ begin
     readkey;
 end;
 
-
-
 procedure altaCompras();
  var
     nCom: integer;
@@ -325,44 +319,42 @@ procedure altaCompras();
     if IOResult <> 0 then
         rewrite(archCom);
 
-    seek(archCom, filesize(archCom));
-    nCom := filesize(archCom) + 1;
-
     write('CUIL/CUIT del cliente: ');
     readln(cuilbuscado);
 
    if existeContribuyente(cuilbuscado) then begin
+      seek(archCom, filesize(archCom));
+      nCom := filesize(archCom) + 1;
+
       com.idCom := nCom;
       com.cuilCli := cuilbuscado;
 
+      write('Fecha de la compra: ');
+      readln(com.fecha);
+      write('Descripcion: ');
+      readln(com.des);
+      write('Monto total: ');
+      readln(com.montoTotal);
+      write('Medio de pago: ');
+      readln(com.medioPago);
+      com.activo := true;
 
-    write('Fecha de la compra: ');
-    readln(com.fecha);
-    write('Descripcion :');
-    readln(com.des);
-    write('Monto total: ');
-    readln(com.montoTotal);
-    write('Medio de pago: ');
-    readln(com.medioPago);
+      write(archCom, com);
+      close(archCom);
 
-    com.activo:= true;
-    end
+      textcolor(green);
+      writeln('Compra registrada correctamente');
+      textcolor(white);
+    end 
     else begin
-    writeln('CUIL/CUIT NO existe');
+         close(archCom);
+         textcolor(red);
+         writeln('CUIL/CUIT NO existe o esta inactivo.');
+         textcolor(white);
     end;
 
-    close(archCom);
-
-    textcolor(green);
-    writeln('Compra registrada correctamente');
-    textcolor(white);
-
     readkey;
-
-
-
-
- end;
+end;
 
 {Procedure importarDesdeTxt();
 
