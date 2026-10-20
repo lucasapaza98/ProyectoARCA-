@@ -10,6 +10,7 @@ type
                 celu   : string[15];
                 claveF : string[10];
                 tipoCon: char;
+                activo : boolean;
                 end;
     t_ArCont = file of t_RegCont;
 
@@ -85,7 +86,7 @@ BEGIN
           for i := 1 to 10-length(regCon.claveF) do
               regCon.claveF := regCon.claveF + ' ';
           inc(c);
-          // Recuperacion de dirección
+          // Recuperacion de direcci?n
           regCon.direc := '';
           while linea[c] <> ';' do
           begin
@@ -96,13 +97,14 @@ BEGIN
               regCon.direc := regCon.direc + ' ';
           inc(c);
           regCon.tipoCon := linea[c];
+          regCon.activo := true;
           // Impresion de datos
           writeln('       CUIL/CUIT:       ',regCon.cuiLT);
           writeln('       Apellido Nombre: ',regCon.apeNom);
           writeln('       Mail:            ',regCon.mail);
           writeln('       Celular:         ',regCon.celu);
           writeln('       Clave Fiscal:    ',regCon.claveF);
-          writeln('       Dirección:       ',regCon.direc);
+          writeln('       Direcci?n:       ',regCon.direc);
           writeln('       Tipo Contrib:    ',regCon.tipoCon);
           writeln('----------------------------------');
           readkey;
