@@ -1,0 +1,5 @@
+1) Recibimos el Archivo de Ventas de Comercio
+2) Leer uno por uno y ir comparando con el listado de contribuyentes
+3) Si el tipo de contribuyente es "R", se le asigna un 21% de reintegro al mismo
+4) Se carga la información en el archivo de compras y luego de finalizar la lectura de todos, se manda el archivo a el banco.
+- Tenemos dos archivos de entrada (Ventas y Contribuyentes) y uno de salida (Reintegros).
