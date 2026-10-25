@@ -1,8 +1,8 @@
-Program parseoArca;
+program parseoArca;
 uses
     crt;
 type
-      tCon = Record
+      tCon = record
                cuil : string[13];
                nom : string[30]; // Apellido y nombre
                mail : string[30];
@@ -47,56 +47,142 @@ var
     //archText: text;
     opc : char; // Menu
 
-function existeContribuyente(cuilbuscado: string[13]): boolean;
+function existeCuil(cuilbuscado: string[13]): boolean;
 var
-  tmp:tCon; // Archivo de controbuyente
+  tmp:tCon; // Archivo de contribuyente
 
   begin
-       existeContribuyente := false;
+       existeCuil := false;
        reset(archBin);//Abrir el contribuyente
 
        while not eof(archBin) do begin
            read(archBin, tmp);
-           if(tmp.cuil = cuilbuscado) AND tmp.activo then begin
-               existeContribuyente:= true;
+           if(tmp.cuil = cuilbuscado) and tmp.activo then begin
+               existeCuil:= true;
                break;
            end;
          end;
-
          close(archBin);
-      end;
+         reset(archBin); // Volver a abrir
+       end;
+
+function formatoCuil (cuil:string):string;
+begin  //Cuando escribas 20323423234 y en pantalla aparezca 20-32342323-4
+     formatoCuil := copy(cuil,1,2)+'-'+copy(cuil,3,8)+'-'+copy(cuil,11,1);
+end;
+
+function formatoCel(cel:string):string;
+begin
+     //Cuando escribas 1122334455 aparezca en pantalla 11-2233-4455
+     formatoCel:= copy(cel,1,2) +'-'+ copy(cel,3,4)+'-'+copy(cel,7,4);
+end;
+
 
 procedure altaDatos();
 
-    var
-        numcuil : string[13];
-        begin
-            reset(archBin);
-            seek(archBin, filesize(archBin));
-            write('CUIT/CUIL: ');
-            readln(numcuil);
-            while numcuil <> '*' Do
-          begin
-                con.cuil := numcuil;
-                write('Nombre: ');
-                readln(con.nom);
-                write('Mail: ');
-                readln(con.mail);
-                write('Celular: ');
-                readln(con.cel);
-                write('Clave Fiscal: ');
-                readln(con.clfis);
-                write('Direccion: ');
-                readln(con.dir);
-                write('Tipo de Contribuyente (R/M): ');
-                readln(con.tipocont);
-                con.activo := true;
-                write(archBin, con);
-                write('CUIT/CUIL: ');
-                readln(numcuil);
-            end;
-            close(archBin);
-        end;
+var
+   numcuil : string[13];
+
+begin
+
+   reset(archBin);
+
+   write('CUIT/CUIL: ');
+   readln(numcuil);
+
+   while numcuil <> '*' do
+   begin
+
+      { Validar longitud del CUIL }
+      while (length(numcuil) <> 11) and (numcuil <> '*') do
+      begin
+         textcolor(white);
+         textbackground(red);
+         write('CUIL incorrecto, ingrese otro: ');
+         textcolor(white);
+         textbackground(black);
+         readln(numcuil);
+      end;
+
+      if numcuil = '*' then
+         break;
+
+      con.cuil := formatoCuil(numcuil);
+
+      { Verificar si el CUIL ya existe }
+      if existeCuil(con.cuil) then
+      begin
+         textcolor(white);
+         textbackground(yellow);
+         writeln('El CUIL ya existe.');
+         textcolor(white);
+         textbackground(black);
+
+         write('CUIT/CUIL: ');
+         readln(numcuil);
+      end
+      else begin
+         write('Nombre: ');
+         readln(con.nom);
+
+         write('Mail: ');
+         readln(con.mail);
+
+         write('Celular: ');
+         readln(con.cel);
+
+         while length(con.cel) <> 10 do begin
+              textcolor(white);
+              textbackground(red);
+              write('Telefono incorrecto, ingrese otro: ');
+              textcolor(white);
+              textbackground(black);
+              readln(con.cel);
+         end;
+
+         con.cel := formatoCel(con.cel);
+
+         write('Clave Fiscal: ');
+         readln(con.clfis);
+         write('Direccion: ');
+         readln(con.dir);
+
+         repeat
+            write('Tipo de Contribuyente (R/M): ');
+            readln(con.tipocont);
+
+            con.tipocont := upcase(con.tipocont);
+            textcolor(white);
+            textbackground(red);
+            writeln('tipo de contribuyente no existe: ');
+            textcolor(white);
+            textbackground(black);
+         until (con.tipocont = 'R') or (con.tipocont = 'M');
+
+         con.activo := true;
+
+         seek(archBin, filesize(archBin));
+         write(archBin, con);
+
+         writeln;
+         textcolor(white);
+         textbackground(green);
+         writeln('Contribuyente registrado correctamente.');
+         textcolor(white);
+         textbackground(black);
+
+         writeln;
+
+         write('CUIT/CUIL: ');
+         readln(numcuil);
+
+      end; // cierre else
+
+   end; // cierre while
+
+   close(archBin);
+
+end;
 
 procedure bajaDatos();
     var
@@ -150,7 +236,7 @@ begin
             writeln('Celular               |', con.cel);
             writeln('Clave Fiscal          |', con.clfis);
             writeln('Direccion             |', con.dir);
-            writeln('Tipo de Contribuyente:| ', con.tipocont);
+            writeln('Tipo de Contribuyente:|',con.tipocont);
             writeln('-------------------------------------');
         end;
     end;
@@ -204,28 +290,28 @@ begin
                 
                 case opcMod of
                     '1': begin 
-                            write('Nuevo Nombre: (',con.nom,')');
+                            write('Nuevo Nombre (',con.nom,'): ');
                             readln(con.nom);
                          end;
 
                     '2': begin
-                            write('Nuevo Mail: (',con.mail,')');
+                            write('Nuevo Mail (',con.mail,'): ');
                             readln(con.mail);
                          end;
                     '3': begin
-                            write('Nuevo Celular: (',con.cel,')');
+                            write('Nuevo Celular (',con.cel,'): ');
                             readln(con.cel);
                          end;
                     '4': begin
-                            write('Nueva Clave Fiscal: (',con.clfis,')');
+                            write('Nueva Clave Fiscal (',con.clfis,'): ');
                             readln(con.clfis);
                          end;
                     '5': begin
-                            write('Nueva Direccion: (',con.dir,')');
+                            write('Nueva Direccion (',con.dir,'): ');
                             readln(con.dir);
                          end;
                     '6': begin
-                            write('Nuevo Tipo de Contribuyente (R/M): (',con.tipocont,')');
+                            write('Nuevo Tipo de Contribuyente (R/M) (',con.tipocont,'): ');
                             readln(con.tipocont);
                          end;
                 end;
@@ -254,7 +340,7 @@ var
     montoBase :real;
     montocalculado : real;
 begin
-    assign(archBin, 'contribuyentes2.dat');
+    assign(archBin, 'contribuyentes.dat');
     assign(archReintegro, 'reintegros.dat');
 
     {$I-}
@@ -322,7 +408,7 @@ procedure altaCompras();
     write('CUIL/CUIT del cliente: ');
     readln(cuilbuscado);
 
-   if existeContribuyente(cuilbuscado) then begin
+   if existeCuil(cuilbuscado) then begin
       seek(archCom, filesize(archCom));
       nCom := filesize(archCom) + 1;
 
@@ -356,88 +442,45 @@ procedure altaCompras();
     readkey;
 end;
 
-{Procedure importarDesdeTxt();
+procedure listarCon10();
+var
+   posI: integer; // Posicion del inicio
+   posA: integer; // Posicion actual
 
-Var linea : string;
-    c, cLin : integer;
-Begin
-    assign(archText, 'contribuyentes2.txt');
-    reset(archText);
-    assign(archBin, 'contribuyentes2.dat');
-    rewrite(archBin);// Abrir de la escritura
-    cLin := 0;
+begin
+     reset(archBin);
+     if filesize(archBin) <= 10 then
+         posI := 0
+     else
+         posI := filesize(archBin) - 10;
 
-    while not eof(archText) Do
-    Begin
-        readln(archText, linea);
-        inc(cLin);
-        c := 1;
+      seek(archBin, posI);
 
-        // Parseo campo por campo
-        con.cuil := '';
-        while linea[c] <> ';'do
-        begin
-             con.cuil := con.cuil + linea[c];
-             inc(c);
-        end;
-        inc(c);
+    textcolor(cyan);
 
-        con.nom := '';
-        while linea[c] <> ';' Do
-        Begin
-             con.nom := con.nom + linea[c];
-             inc(c);
-        End;
-        inc(c);
+   writeln('==============================================================================================');
+   writeln('| Pos | CUIL           | Nombre                        | Celular       | Tipo |');
+   writeln('==============================================================================================');
+   textcolor(white);
 
+   while not eof(archBin) do
+   begin
+      posA := filepos(archBin);
+      read(archBin,con);
+      if con.activo then
+      begin
 
-        con.mail := '';
-        while linea[c] <> ';' Do
-        Begin
-            con.mail := con.mail + linea[c];
-            inc(c);
-        End;
-        inc(c);
+         writeln('| ',(posA-1):3,' | ',con.cuil:13,' | ',con.nom:30,' | ',con.cel:12,' | ',con.tipocont:4,' |');
 
-        con.cel := '';
-        while linea[c] <> ';' Do
-        Begin
-            con.cel := con.cel + linea[c];
-            inc(c);
-        End;
-        inc(c);
+      end;
+   end;
+   writeln('==============================================================================================');
 
-        con.clfis := '';
-        while linea[c] <> ';' Do
-        Begin
-            con.clfis := con.clfis + linea[c];
-            inc(c);
-        End;
-        inc(c);
-
-        con.dir := '';
-        while linea[c] <> ';' Do
-        Begin
-            con.dir := con.dir + linea[c];
-            inc(c);
-        End;
-        inc(c);
-
-        con.tipocont := linea[c];
-        con.activo := true;
-
-        write(archBin, con);
-    End;
-
-    close(archText);
-    close(archBin);
-    writeln('Importacion desde TXT finalizada.');
-
-
-End;
-}
+   close(archBin);
+   readkey;
+end;
 BEGIN
-     assign (archBin, 'contribuyentes2.dat');
+     assign (archBin, 'contribuyentes.dat');
     {$I-}
         reset(archBin);
     {$I+}
@@ -453,7 +496,7 @@ BEGIN
         writeln(' M - Modificacion de Contribuyente ');
         writeln(' R - Reintegro');
         writeln(' P - Alta Compras ');
-       // writeln(' I - Importar');
+        writeln(' L - Ultimos 10 contribuyentes');
         writeln(' T - Terminar ');
         readln(opc);
         case opc of
@@ -463,7 +506,7 @@ BEGIN
             'M', 'm': modificarDatos();
             'R', 'r': gestionarReintegro();
             'P', 'p': altaCompras();
-         //   'I', 'i': importarDesdeTxt();
+            'L', 'l': listarCon10();
             'T', 't': writeln('Saliendo del programa');
             else      writeln('Opcion Invalida ');
         end;
