@@ -3,3 +3,24 @@
 3) Si el tipo de contribuyente es "R", se le asigna un 21% de reintegro al mismo
 4) Se carga la información en el archivo de compras y luego de finalizar la lectura de todos, se manda el archivo a el banco.
 - Tenemos dos archivos de entrada (Ventas y Contribuyentes) y uno de salida (Reintegros).
+
+LA ESTRUCTURA DE DATOS
+
+archivo ventas_bancos.txt
+archivo contribuyentes.dat
+proceso
+archivo reintegro.dat
+
+leer uno por uno el archivo "ventas_bancos.txt" 
+
+mientras haya ventas, leer ventas
+
+por cada venta obtener el cuil y el importe 
+
+buscar el contribuyente con el cuil de la venta (vas al contribuyente.dat) 
+
+revisar si es tipo=R tener el 21% 
+              tipo:M nada
+hago el write(archrei. rei);
+
+crear el procedure generar_reintegro()
