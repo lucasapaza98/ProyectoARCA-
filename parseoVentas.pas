@@ -26,7 +26,7 @@ var
 
 // Cuerpo del programa
 BEGIN
-     assign(archivo, 'ventas_arca.txt');
+     assign(archivo, 'ventas_banco.txt');
      reset(archivo);
      assign(arVenta, 'ventas_arca.dat');
      rewrite(arVenta);
@@ -40,7 +40,7 @@ BEGIN
           inc(cLin);
           writeln('Nro ', cLin, ':');
           c := 1;
-          //Recuperaci髇 del N鷐ero de Venta
+          //Recuperaci贸n del N煤mero de Venta
           auxStr := '';
           while linea[c] <> ';' do
           begin
@@ -49,7 +49,7 @@ BEGIN
           end;
           val(auxStr, regVen.nroVenta, coderr);
           inc(c);
-          //Recuperaci髇 del CUIL/CUIT
+          //Recuperaci贸n del CUIL/CUIT
           regVen.cuil := '';
           while linea[c] <> ';' do
           begin
@@ -59,7 +59,7 @@ BEGIN
           for i := 1 to 13-length(regVen.cuil) do
                regVen.cuil := regVen.cuil + ' ';
           inc(c);
-          //Recuperaci髇 del D韆
+          //Recuperaci贸n del D铆a
           auxStr := '';
           while linea[c] <> ';' do
           begin
@@ -68,7 +68,7 @@ BEGIN
           end;
           val(auxStr, regVen.dia, coderr);
           inc(c);
-          //Recuperaci髇 del Mes
+          //Recuperaci贸n del Mes
           auxStr := '';
           while linea[c] <> ';' do
           begin
@@ -77,7 +77,7 @@ BEGIN
           end;
           val(auxStr, regVen.mes, coderr);
           inc(c);
-          //Recuperaci髇 del A駉
+          //Recuperaci贸n del A帽o
           auxStr := '';
           while linea[c] <> ';' do
           begin
@@ -86,7 +86,7 @@ BEGIN
           end;
           val(auxStr, regVen.anio, coderr);
           inc(c);
-          //Recuperaci髇 del Monto
+          //Recuperaci贸n del Monto
           auxStr := '';
           while linea[c] <> ';' do
           begin
@@ -95,7 +95,7 @@ BEGIN
           end;
           val(auxStr, regVen.monto, coderr);
           inc(c);
-          //Recuperaci髇 del Tipo de Pago
+          //Recuperaci贸n del Tipo de Pago
           regVen.tipoPago := '';
           while linea[c] <> ';' do
           begin
@@ -105,7 +105,7 @@ BEGIN
           for i := 1 to 15-length(regVen.tipoPago) do
                regVen.tipoPago := regVen.tipoPago + ' ';
           inc(c);
-          //Recuperaci髇 de la Descripci髇
+          //Recuperaci贸n de la Descripci贸n
           regVen.desc := '';
           while linea[c] <> ';' do
           begin
@@ -116,7 +116,7 @@ BEGIN
                regVen.desc := regVen.desc + ' ';
           inc(c);
           regVen.activo := true;
-          //Impresi髇 de datos
+          //Impresi贸n de datos
           writeln('       Nro Venta:    ', regVen.nroVenta);
           writeln('       CUIL/CUIT:    ', regVen.cuil);
           writeln('       Fecha:        ', regVen.dia, '/', regVen.mes, '/', regVen.anio);
