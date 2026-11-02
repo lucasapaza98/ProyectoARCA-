@@ -1,0 +1,7 @@
+Alicia,5,6
+Carlos,6,7
+Daniel,7,8
+Florencia,6,9
+Juan Pedro Pablo de la Mar,5,5
+Laura,7,8
+Maria,6,9

@@ -1,0 +1,9 @@
+Carlos,6,7
+Delfina,6,6
+Ernesto,7,8
+Florencia,7,8
+Gabriela,8,9
+Horacio,8,8
+Xiomara,7,9
+Yanina,6,8
+Zoilo,4,9
