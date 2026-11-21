@@ -25,19 +25,7 @@ Type
                   End;
    Tarchrei = file Of Treintegro;
 
-   // Las compras
-   tCompras = Record
-                idCom: integer;
-                cuilCli: string[13];
-                // FK - contribuyente
-                fecha: string[10];
-                des: string[50];
-                montoTotal: real;
-                medioPago: string[15];
-                // Efectivo, debito, credito, etc.
-                activo: boolean;
-               End;
-    TarchCom = file Of tCompras;
+
 
   // Escructura completa de ventas lo que pide al ARCA 
    tVenta = Record
@@ -53,13 +41,11 @@ Var
     archReintegro: Tarchrei;// Archivos de reintegros
     archBin : tArc;//Archivos de contribuyentes
     rei : Treintegro;// Registro de reintegro
-    archCom: TarchCom;// Archivos de compras
-    com: tCompras;// Registro de compras
     archText: text;
     venta : tVenta;// Registro de ventas
     archVenta : TarchVenta;// Archivos de ventas
-     archVentaTxt : text;
-      opc : char; // Menu
+    archVentaTxt : text;
+    opc : char; // Menu
 
 Function existeCuil(cuilbuscado: String[13]): boolean;
 
@@ -508,18 +494,10 @@ End;
 Procedure listarUltimasVentas();
 
 Var 
-   posI : integer;
    posA : integer;
 Begin
    assign(archVenta,'ventas.dat');
    reset(archVenta);
-
-   If filesize(archVenta) >= 10 Then
-      posI := 0
-   Else
-      posI := filesize(archVenta) - 10;
-
-   seek(archVenta, posI);
 
    writeln('==================================================');
    writeln('| Pos | ID Venta | CUIL-T        | Monto          |');
@@ -544,6 +522,7 @@ Procedure generarReintegro();
 
 Var
    encontrado : boolean;
+   res:integer;
 
 Begin
 
@@ -559,6 +538,7 @@ Begin
    {$I-}
    reset(archReintegro);
    {$I+}
+   res :=1;
 
    if IOResult <> 0 then
       rewrite(archReintegro);
@@ -601,7 +581,7 @@ Begin
 
       end;
 
-      { Si encontró }
+      { Si encontrÃ³ }
 
       if encontrado then
       begin
@@ -617,8 +597,8 @@ Begin
             readkey;}
 
             rei.cuilcontribuyente := venta.cuil;
-            seek(archReintegro, filesize(archReintegro));
-            rei.nroresolucion := filesize(archReintegro)+1;
+            //seek(archReintegro, filesize(archReintegro));
+            rei.nroresolucion := res;
             rei.montoreintegro := venta.monto * 0.21;
             rei.estado := 'pendiente';
             rei.activo := true;
@@ -631,6 +611,8 @@ Begin
 
 
               write(archReintegro, rei);
+
+              res := res + 1;
 
 
          end;
@@ -651,19 +633,11 @@ End;
 
 Procedure listarUltimosReintegros();
 
-Var 
-   posI : integer;
+var
    posA : integer;
 Begin
    assign(archReintegro,'reintegros.dat');
    reset(archReintegro);
-
-   If filesize(archReintegro) >= 10 Then
-      posI := 0
-   Else
-      posI := filesize(archReintegro);
-
-   seek(archReintegro, posI);
 
    writeln('===================================================================');
    writeln('| Pos | CUIL-T        | Resolucion | Reintegro      | Estado       |');
@@ -684,59 +658,6 @@ Begin
 
    close(archReintegro);
    readkey;
-End;
-
-Procedure altaCompras();
-
- Var 
-    nCom: integer;
-    cuilbuscado: string[13];
- Begin
-   assign(archCom, 'comprasclientes.dat');
-   {$I-}
-    reset(archCom);
-    {$I+}
-    If IOResult <> 0 Then
-        rewrite(archCom);
-
-    write('CUIL/CUIT del cliente: ');
-    readln(cuilbuscado);
-    cuilbuscado := quitGuiones(cuilbuscado);
-
-   If existeCuil(cuilbuscado) Then
-     Begin
-       seek(archCom, filesize(archCom));
-       nCom := filesize(archCom) + 1;
-
-       com.idCom := nCom;
-       com.cuilCli := cuilbuscado;
-
-       write('Fecha de la compra: ');
-       readln(com.fecha);
-       write('Descripcion: ');
-       readln(com.des);
-       write('Monto total: ');
-       readln(com.montoTotal);
-       write('Medio de pago: ');
-       readln(com.medioPago);
-       com.activo := true;
-
-       write(archCom, com);
-       close(archCom);
-
-       textcolor(green);
-       writeln('Compra registrada correctamente');
-       textcolor(white);
-     End
-    Else
-      Begin
-         close(archCom);
-         textcolor(red);
-         writeln('CUIL/CUIT NO existe o esta inactivo.');
-         textcolor(white);
-      End;
-
-    readkey;
 End;
 
 Procedure listarCon10();
@@ -873,7 +794,121 @@ Begin
    readkey;
 End;
 
-Begin
+// Nuevos procedimientos integrados
+
+procedure verResumen(regCli : tCon); // Agrega una variable por valor regCli
+var
+    cant : integer;
+    total : real;
+begin
+    cant := 0;
+    total := 0;
+    assign(archVenta, 'ventas.dat');
+    {$I-}
+    reset(archVenta);
+    {$I+}
+    If IOResult <> 0 Then
+        exit;
+    while not eof(archVenta) do 
+    begin
+        read(archVenta, venta);
+        if venta.cuil = regCli.cuil then 
+        begin
+            cant := cant + 1;
+            total := total + venta.monto;
+        end;
+    end;
+    close(archVenta);
+
+    if cant > 0 then
+        writeln(regCli.nom, ' realizo ', cant, ' transacciones por $', total:0:2);
+end;
+
+procedure conMovimientos();
+begin
+    writeln('Contribuyentes con movimientos (ventas)');
+    writeln;
+
+    assign(archBin, 'contribuyentes.dat');
+    {$I-}
+    reset(archBin);
+    {$I+}
+    If IOResult <> 0 Then
+    Begin
+        writeln('No hay archivo de contribuyentes.');
+        readkey;
+        exit;
+    End;
+
+    while not eof(archBin) do 
+    begin
+        read(archBin, con);
+        if con.activo then
+            verResumen(con); // si contribuyente esta activo , muestra el resumen del procedimiento verResumen
+    end;
+    close(archBin);
+    writeln;
+    writeln('Presione una tecla para continuar...');
+    readkey;
+end;
+
+function contarMovimientos(cuilBuscado : string[13]) : integer;
+var
+    cant : integer;
+begin
+    cant := 0;
+
+    assign(archVenta, 'ventas.dat');
+    {$I-}
+    reset(archVenta);
+    {$I+}
+    If IOResult <> 0 Then
+    Begin
+        contarMovimientos := 0;
+        exit;
+    End;
+
+    while not eof(archVenta) do 
+    begin
+        read(archVenta, venta);
+        if venta.cuil = cuilBuscado then
+            cant := cant + 1;
+    end;
+    close(archVenta);
+    contarMovimientos := cant; // Guarda la cantidad dentro de la funcion
+end;
+
+procedure sinMovimientos();
+begin
+    writeln('Contribuyentes sin movimientos');
+    writeln;
+
+    assign(archBin, 'contribuyentes.dat');
+    {$I-}
+    reset(archBin);
+    {$I+}
+    If IOResult <> 0 Then
+    Begin
+        writeln('No hay archivo de contribuyentes.');
+        readkey;
+        exit;
+    End;
+
+    while not eof(archBin) do 
+    begin
+        read(archBin, con);
+        if con.activo and (contarMovimientos(con.cuil) = 0) then
+            writeln(formatoCuil(con.cuil), ' - ', con.nom);
+    end;
+    close(archBin);
+    writeln;
+    writeln('Presione una tecla para continuar...');
+    readkey;
+end;
+
+
+
+BEGIN
      assign (archBin, 'contribuyentes.dat');
     {$I-}
         reset(archBin);
@@ -889,12 +924,13 @@ Begin
         writeln(' C - Busqueda de Registro ');
         writeln(' M - Modificacion de Contribuyente ');
         writeln(' R - Reintegro');
-        writeln(' P - Alta Compras ');
         writeln(' L - Listado contribuyentes');
         writeln(' U - Listado ventas');
         writeln(' E - Listado reintegros');
-        writeln(' I - Importar TXT ');
+        writeln(' I - Importar Contribuyentes');
         writeln(' V - Importar Ventas');
+        writeln(' K - Contribuyentes con movimientos');
+        writeln(' S - Contribuyentes sin movimientos');
         writeln(' T - Terminar ');
         readln(opc);
         Case opc Of
@@ -903,15 +939,16 @@ Begin
             'C', 'c': buscarDatos();
             'M', 'm': modificarDatos();
             'R', 'r': generarReintegro();
-            'P', 'p': altaCompras();
             'L', 'l': listarCon10();
             'U', 'u': listarUltimasVentas();
             'E','e' : listarUltimosReintegros();
             'I', 'i': importarDesdeTxt();
             'V', 'v': importarVentas();
+            'K', 'k': conMovimientos();
+            'S', 's': sinMovimientos();
             'T', 't': writeln('Saliendo del programa');
             Else      writeln('Opcion Invalida ');
         End;
     Until (opc = 'T') Or (opc = 't');
     readkey;
-End.
+END.
