@@ -491,7 +491,7 @@ Begin
 
 End;
 
-Procedure listarUltimasVentas();
+Procedure listarVentas();
 
 Var 
    posA : integer;
@@ -613,8 +613,6 @@ Begin
               write(archReintegro, rei);
 
               res := res + 1;
-
-
          end;
 
       end;
@@ -631,7 +629,7 @@ Begin
 
 End;
 
-Procedure listarUltimosReintegros();
+Procedure listarReintegros();
 
 var
    posA : integer;
@@ -660,7 +658,7 @@ Begin
    readkey;
 End;
 
-Procedure listarCon10();
+Procedure listarContribuyentes();
 
 Var 
    posI: integer;
@@ -908,7 +906,7 @@ end;
 
 
 
-BEGIN
+Begin
      assign (archBin, 'contribuyentes.dat');
     {$I-}
         reset(archBin);
@@ -939,9 +937,9 @@ BEGIN
             'C', 'c': buscarDatos();
             'M', 'm': modificarDatos();
             'R', 'r': generarReintegro();
-            'L', 'l': listarCon10();
-            'U', 'u': listarUltimasVentas();
-            'E','e' : listarUltimosReintegros();
+            'L', 'l': listarContribuyentes();
+            'U', 'u': listarVentas();
+            'E','e' : listarReintegros();
             'I', 'i': importarDesdeTxt();
             'V', 'v': importarVentas();
             'K', 'k': conMovimientos();
@@ -951,4 +949,4 @@ BEGIN
         End;
     Until (opc = 'T') Or (opc = 't');
     readkey;
-END.
+End.
