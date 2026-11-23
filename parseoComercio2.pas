@@ -406,7 +406,7 @@ Var
    codError : integer;
 Begin
 
-   assign(archVentaTxt,'ventas_banco.txt');
+   assign(archVentaTxt,'ventas_arca.txt');
    reset(archVentaTxt);
 
    assign(archVenta,'ventas.dat');
@@ -581,7 +581,7 @@ Begin
 
       end;
 
-      { Si encontrÃ³ }
+      { Si encontró }
 
       if encontrado then
       begin
@@ -632,7 +632,8 @@ End;
 Procedure listarReintegros();
 
 var
-   posA : integer;
+   posA : integer; // Posicion Actual
+
 Begin
    assign(archReintegro,'reintegros.dat');
    reset(archReintegro);
@@ -665,6 +666,9 @@ Var
   // Posicion del inicio
    posA: integer;
   // Posicion actual
+  i, j, n: integer;
+  a, b: tCon;
+  huboCambio: boolean;
 
 Begin
      {$I-}
@@ -672,6 +676,26 @@ Begin
      {$I+}
      If IOResult <> 0 Then
          rewrite(archBin);
+
+     n := filesize(archBin);
+     i := 1;
+     Repeat
+        huboCambio := false;
+        For j := 0 To n - i - 1 Do
+        Begin
+           seek(archBin, j);
+           read(archBin, a);
+           read(archBin, b);
+           If a.cuil > b.cuil Then
+           Begin
+              seek(archBin, j);
+              write(archBin, b);
+              write(archBin, a);
+              huboCambio := true;
+           End;
+        End;
+        i := i + 1;
+     Until (Not huboCambio) Or (i >= n);
 
      If filesize(archBin) >= 10 Then
          posI := 0
