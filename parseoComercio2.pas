@@ -30,7 +30,7 @@ Type
   // Escructura completa de ventas lo que pide al ARCA 
    tVenta = Record
               idVenta : longint;
-              cuil : string[11];
+              cuil : string[13];
               monto : real
    End;
 
@@ -322,7 +322,7 @@ Begin
 
     while not eof(archBin) and not encontrado Do
   Begin
-        pos := filepos(archBin);
+        pos := filepos(archBin); // Guarda la posición antes de leer
         read(archBin, con);
         If (con.cuil = numcuil) And con.activo Then
           Begin
@@ -373,14 +373,27 @@ Begin
                          End;
                     '6':
                          Begin
-                            write('Nuevo Tipo de Contribuyente (R/M) (',con.tipocont,'): '
-                           );
-                            readln(con.tipocont);
+                            // Valida que solo se ingrese 'R' o 'M' en mayúscula
+                            Repeat
+                               write('Nuevo Tipo de Contribuyente (R/M) (',con.tipocont,'): ');
+                               readln(con.tipocont);
+                               con.tipocont := upcase(con.tipocont);
+
+                               If (con.tipocont <> 'R') And (con.tipocont <> 'M') Then
+                               Begin
+                                  textcolor(white);
+                                  textbackground(red);
+                                  writeln('Tipo de contribuyente no existe');
+                                  textcolor(white);
+                                  textbackground(black);
+                                  readkey;
+                               End;
+                            Until (con.tipocont = 'R') Or (con.tipocont = 'M');
                          End;
                 End;
             Until opcMod = '0';
-            seek(archBin, pos);
-            write(archBin, con);
+            seek(archBin, pos); // Vuelve a la posición original del registro
+            write(archBin, con); // Sobrescribe con los cambios
             textcolor(green);
             writeln('Registro actualizado exitosamente.');
             textcolor(white);
@@ -416,6 +429,10 @@ Begin
    Begin
 
       readln(archVentaTxt,linea);
+      // Ignora líneas vacías para evitar errores o duplicados al final
+        if length(linea) = 0 then
+            continue;
+
       c := 1;
 
       // Id venta
@@ -492,12 +509,27 @@ Begin
 End;
 
 Procedure listarVentas();
-
 Var 
    posA : integer;
 Begin
    assign(archVenta,'ventas.dat');
+   {$I-}
    reset(archVenta);
+   {$I+}
+   If IOResult <> 0 Then
+   Begin
+      writeln('No existe el archivo de ventas todavia.');
+      readkey;
+      exit;
+   End;
+
+   If filesize(archVenta) = 0 Then
+   Begin
+      writeln('No hay ventas registradas.');
+      close(archVenta);
+      readkey;
+      exit;
+   End;
 
    writeln('==================================================');
    writeln('| Pos | ID Venta | CUIL-T        | Monto          |');
@@ -516,7 +548,6 @@ Begin
    close(archVenta);
    readkey;
 End;
-
 
 Procedure generarReintegro();
 
@@ -581,7 +612,7 @@ Begin
 
       end;
 
-      { Si encontr� }
+      { Si encontró }
 
       if encontrado then
       begin
@@ -628,16 +659,31 @@ Begin
    readkey;
 
 End;
-
 Procedure listarReintegros();
-
-var
-   posA : integer; // Posicion Actual
-
+Var 
+   posA : integer;
+   hayActivos : boolean;
 Begin
    assign(archReintegro,'reintegros.dat');
+   {$I-}
    reset(archReintegro);
+   {$I+}
+   If IOResult <> 0 Then
+   Begin
+      writeln('No existe el archivo de reintegros todavia.');
+      readkey;
+      exit;
+   End;
 
+   If filesize(archReintegro) = 0 Then
+   Begin
+      writeln('No hay reintegros registrados.');
+      close(archReintegro);
+      readkey;
+      exit;
+   End;
+
+   hayActivos := false;
    writeln('===================================================================');
    writeln('| Pos | CUIL-T        | Resolucion | Reintegro      | Estado       |');
    writeln('===================================================================');
@@ -648,12 +694,16 @@ Begin
       read(archReintegro, rei);
 
       If rei.activo Then
-        Begin
-          writeln('| ',posA:3,' | ',rei.cuilcontribuyente:11,' | ',rei.nroresolucion:10,' | $',rei.montoreintegro:12:2,' | ',rei.estado:12,' |');
-        End;
+      Begin
+         hayActivos := true;
+         writeln('| ',posA:3,' | ',rei.cuilcontribuyente:11,' | ',rei.nroresolucion:10,' | $',rei.montoreintegro:12:2,' | ',rei.estado:12,' |');
+      End;
    End;
 
    writeln('===================================================================');
+
+   If Not hayActivos Then
+      writeln('No hay reintegros activos para mostrar.');
 
    close(archReintegro);
    readkey;
@@ -742,7 +792,9 @@ Begin
    while not eof(archText) Do
    Begin
       readln(archText,linea);
-
+      // Ignora líneas vacías al final o entre registros
+      if length(linea) = 0 then
+         continue;
       c := 1;
 
       con.cuil := '';
